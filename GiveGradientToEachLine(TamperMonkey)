@@ -1,0 +1,81 @@
+// ==UserScript==
+// @name         Enhanced Gradient Color Transitions for Clear Text
+// @namespace    http://tampermonkey.net/
+// @version      0.8
+// @description  Apply colorful, readable gradient color transitions to each line of text while preserving HTML structure and improving text clarity
+// @author       You
+// @match        *://*/*
+// @grant        none
+// @run-at       document-end
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    function getRandomGradient() {
+        // Define colorful gradients with dark shades for readability
+        const gradients = [
+            'linear-gradient(to right, #2C3E50, #3498DB)', // Dark blue-grey to bright blue
+            'linear-gradient(to right, #1E1E1E, #E74C3C)', // Dark charcoal to red
+            'linear-gradient(to right, #2F4F4F, #00CED1)', // Dark slate grey to dark turquoise
+            'linear-gradient(to right, #282C34, #FF6347)', // Almost black to tomato red
+            'linear-gradient(to right, #1A1A1A, #4B0082)'  // Dark grey to indigo
+        ];
+        const directions = [
+            'to right',
+            'to left',
+            'to top',
+            'to bottom',
+            'to top right',
+            'to bottom left',
+            'to bottom right',
+            'to top left'
+        ];
+        const gradient = gradients[Math.floor(Math.random() * gradients.length)];
+        const direction = directions[Math.floor(Math.random() * directions.length)];
+        return `${gradient}`;
+    }
+
+    function applyGradientToTextNodes(node) {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const span = document.createElement('span');
+            const gradient = getRandomGradient();
+            span.className = 'gradient-line';
+            span.style.setProperty('--gradient', gradient);
+            span.textContent = node.textContent;
+            node.replaceWith(span);
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            if (node.tagName !== 'STYLE') { // Skip style elements
+                node.childNodes.forEach(applyGradientToTextNodes);
+            }
+        }
+    }
+
+    function applyGradientToLines() {
+        // Create a style element to hold the CSS rules
+        const style = document.createElement('style');
+        style.textContent = `
+            .gradient-line {
+                display: inline;
+                background: var(--gradient);
+                -webkit-background-clip: text;
+                background-clip: text;
+                color: transparent;
+                background-size: 100% 100%;
+                background-repeat: no-repeat;
+                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5); /* Adjust shadow to reduce blurriness */
+                font-size: 20px; /* Increase font size */
+                line-height: 1.5;
+                -webkit-font-smoothing: antialiased; /* Improve text clarity */
+                -moz-osx-font-smoothing: grayscale; /* Improve text clarity */
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Apply gradient only to text nodes
+        document.body.childNodes.forEach(applyGradientToTextNodes);
+    }
+
+    // Run the gradient application
+    applyGradientToLines();
+})();
